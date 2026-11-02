@@ -254,3 +254,4 @@ async function predictWebcam() {
     window.requestAnimationFrame(predictWebcam);
   }
 }
+
