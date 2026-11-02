@@ -1,0 +1,179 @@
+/* 全体のレイアウトとフォント */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 15px;
+  background: #121212;
+  color: #e0e0e0;
+}
+
+/* アプリ全体のコンテナボックス */
+.app-container {
+  max-width: 500px;
+  margin: 0 auto;
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+/* 見出し */
+h1 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+/* タブ切り替えメニューのスタイル */
+.tab-menu {
+  display: flex;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #444;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: #2a2a2a;
+  color: #aaa;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn.active {
+  background: #007bff;
+  color: #fff;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* 各コントロールグループ */
+.control-group {
+  margin-bottom: 15px;
+  text-align: left;
+  background: #2a2a2a;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.control-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+/* 入力欄、セレクトボックス、ボタン共通 */
+input[type="text"], select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background: #121212;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-top: 5px;
+}
+
+input[type="text"]:focus, select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* ボタン類 */
+button {
+  cursor: pointer;
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  background: #28a745;
+  font-size: 16px;
+}
+
+.danger-btn {
+  width: 100%;
+  padding: 12px;
+  background: #dc3545;
+  font-size: 16px;
+}
+
+/* カメラ映像表示エリア */
+.camera-container {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 15px;
+  aspect-ratio: 4 / 3;
+}
+
+video, canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+/* ステータス表示ボックス */
+.status-box {
+  margin-top: 15px;
+  padding: 10px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #ffc107;
+  border: 1px solid #444;
+}
+
+/* 発見・登録アイテムの履歴ギャラリー */
+.gallery {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 5px 0;
+  min-height: 90px;
+}
+
+.gallery::-webkit-scrollbar {
+  height: 6px;
+}
+
+.gallery::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
