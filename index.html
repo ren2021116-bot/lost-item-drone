@@ -1,1 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI探偵カメラ（履歴クリア機能付き）</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- MediaPipe Object Detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.2"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    <h1>🔍 AI探偵カメラ</h1>
+
+    <div class="control-group">
+      <label for="targetObject">探すもの (英語):</label>
+      <div style="display: flex; gap: 5px;">
+        <input type="text" id="targetObject" value="cup" placeholder="例: cup, remote, cell phone" style="flex: 1;">
+        <button onclick="updateTarget()" style="padding: 0 15px; background: #007bff; color: #fff; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">決定</button>
+      </div>
+    </div>
+
+    <!-- Lite0 と Lite2 を切り替えるプルダウン -->
+    <div class="control-group">
+      <label for="modelSelect">AIモデル切り替え:</label>
+      <select id="modelSelect" onchange="changeModel()">
+        <option value="lite0">EfficientDet-Lite0 (高速・軽量)</option>
+        <option value="lite2">EfficientDet-Lite2 (高精度)</option>
+      </select>
+    </div>
+
+    <div class="camera-container">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="outputCanvas"></canvas>
+    </div>
+
+    <div class="button-group">
+      <button id="startButton" class="primary-btn" onclick="startCamera()" disabled>AIモデルをロード中...</button>
+      <button id="stopButton" class="danger-btn" onclick="stopCamera()" style="display:none;">停止</button>
+    </div>
+
+    <div id="status" class="status-box">ステータス: AIモデルをロード中...</div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+      <h3 style="margin: 0;">📁 発見したアイテムの履歴</h3>
+      <button onclick="clearGallery()" style="padding: 5px 10px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">履歴をクリア</button>
+    </div>
+    <div id="imageGallery" class="gallery"></div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
 
