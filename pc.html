@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FINDRONE PC受信画面</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div class="app-container">
+  <h1>🖥 PC受信画面</h1>
+
+  <div class="card center">
+    <div>このIDを、スマホやカメラ側の「PC接続用ID」に入力してください</div>
+    <div id="pcId" class="big-id">作成中...</div>
+    <div id="pcStatus" class="note">サーバーに接続中...</div>
+    <div style="margin-top:10px"><button id="newIdButton" class="btn blue small">IDを作り直す</button></div>
+  </div>
+
+  <div class="row between">
+    <h3>📥 受信した落とし物</h3>
+    <button id="clearButton" class="btn red small">クリア</button>
+  </div>
+  <div id="list" class="gallery wrap"></div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var ID_KEY = "findrone_pc_my_id";
+  var LIST_KEY = "findrone_pc_items";
+  var peer = null, tries = 0;
+
+  function randomId() {
+    var s = "FD-";
+    for (var i = 0; i < 4; i++) s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+    return s;
+  }
+  function setStatus(t) { $("pcStatus").textContent = t; }
+
+  function loadItems() {
+    try { return JSON.parse(localStorage.getItem(LIST_KEY) || "[]"); } catch (e) { return []; }
+  }
+  function saveItems(items) {
+    try { localStorage.setItem(LIST_KEY, JSON.stringify(items.slice(0, 50))); } catch (e) {}
+  }
+
+  function render(items) {
+    var list = $("list");
+    list.replaceChildren();
+    items.forEach(function (it) {
+      var box = document.createElement("div");
+      box.className = "gallery-item";
+      var img = document.createElement("img");
+      img.src = it.image; img.alt = it.label;
+      var cap = document.createElement("div");
+      cap.className = "cap";
+      cap.textContent = it.label + " " + it.score + "%\n" + (it.place || "場所未設定") + "\n" + it.timeText;
+      box.appendChild(img); box.appendChild(cap);
+      list.appendChild(box);
+    });
+  }
+
+  function onData(d) {
+    if (!d || d.type !== "found") return;
+    var image = String(d.image || "");
+    if (!/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(image) || image.length > 200000) return;
+    var t = new Date(d.time);
+    if (isNaN(t.getTime())) t = new Date();
+    var item = {
+      label: String(d.label || "").slice(0, 50),
+      score: Math.max(0, Math.min(100, Math.round(Number(d.score) || 0))),
+      place: String(d.place || "").slice(0, 50),
+      timeText: t.toLocaleString("ja-JP"),
+      image: image
+    };
+    var items = loadItems();
+    items.unshift(item);
+    saveItems(items);
+    render(items);
+  }
+
+  function start(forceNew) {
+    var id = null;
+    try { id = forceNew ? null : localStorage.getItem(ID_KEY); } catch (e) {}
+    if (!id) id = randomId();
+    $("pcId").textContent = id;
+    setStatus("接続中...");
+    if (peer) { try { peer.destroy(); } catch (e) {} }
+    peer = new Peer(id);
+    peer.on("open", function (openedId) {
+      try { localStorage.setItem(ID_KEY, openedId); } catch (e) {}
+      tries = 0;
+      setStatus("✅ 待機中です。スマホからの接続を待っています");
+    });
+    peer.on("connection", function (c) {
+      c.on("open", function () { setStatus("✅ 接続されました(" + new Date().toLocaleTimeString("ja-JP") + ")"); });
+      c.on("data", onData);
+      c.on("close", function () { setStatus("相手が切断しました。待機中です"); });
+    });
+    peer.on("disconnected", function () { try { peer.reconnect(); } catch (e) {} });
+    peer.on("error", function (err) {
+      if (err.type === "unavailable-id") {
+        // 前回のIDがサーバーに残っていることがある。少し待って再試行し、だめなら新しいIDにする
+        if (tries < 3) { tries++; setStatus("IDを確保しています...(" + tries + ")"); setTimeout(function () { start(false); }, 3000); }
+        else { tries = 0; start(true); }
+      } else {
+        setStatus("エラー: " + err.type);
+      }
+    });
+  }
+
+  $("newIdButton").addEventListener("click", function () { start(true); });
+  $("clearButton").addEventListener("click", function () { saveItems([]); render([]); });
+
+  render(loadItems());
+  if (typeof Peer === "undefined") {
+    setStatus("通信ライブラリを読み込めませんでした。ネットワークを確認してください");
+  } else {
+    start(false);
+  }
+})();
+</script>
+</body>
+</html>

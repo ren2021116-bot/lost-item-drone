@@ -1,0 +1,74 @@
+:root {
+  --bg: #14161b; --card: #1d2027; --line: #343a46; --text: #eceff4; --dim: #9aa3b2;
+  --blue: #2f7df6; --green: #28a745; --red: #dc3545; --gray: #6c757d; --yellow: #ffc107; --teal: #17a2b8;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); line-height: 1.5;
+  font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+}
+.app-container { max-width: 760px; margin: 0 auto; padding: 12px 12px 48px; }
+h1 { font-size: 1.4rem; margin: 8px 0 12px; }
+h3 { margin: 0; font-size: 1rem; }
+
+.tab-menu { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab-btn {
+  flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--card); color: var(--text); font-weight: bold; font-size: 15px; cursor: pointer;
+}
+.tab-btn.active { background: var(--blue); border-color: var(--blue); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+label { display: block; font-weight: bold; margin: 10px 0 4px; font-size: .9rem; }
+.card > label:first-child { margin-top: 0; }
+input[type=text], select {
+  width: 100%; padding: 10px; font-size: 16px; border-radius: 6px;
+  border: 1px solid var(--line); background: #0f1115; color: var(--text);
+}
+.row { display: flex; gap: 8px; align-items: center; }
+.row > input { flex: 1; min-width: 0; }
+.between { justify-content: space-between; margin-top: 16px; }
+
+.btn { padding: 10px 14px; border: 0; border-radius: 8px; color: #fff; font-weight: bold; font-size: 15px; cursor: pointer; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.blue { background: var(--blue); } .btn.green { background: var(--green); }
+.btn.red { background: var(--red); } .btn.gray { background: var(--gray); }
+.btn.teal { background: var(--teal); } .btn.yellow { background: var(--yellow); color: #000; }
+.btn.small { padding: 6px 10px; font-size: 12px; }
+.btn.wide { flex: 1; }
+.btn.full { width: 100%; }
+
+.note { font-size: .8rem; color: var(--dim); margin-top: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: #0f1115; color: var(--text); font-size: 13px; cursor: pointer; }
+
+.camera-container { position: relative; width: 100%; min-height: 180px; background: #000; border-radius: 8px; overflow: hidden; margin-top: 8px; }
+.camera-container video { width: 100%; display: block; }
+.camera-container canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.guide {
+  position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; transform: translate(-50%, -50%);
+  border: 3px dashed var(--yellow); border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .35); pointer-events: none;
+}
+.hint { color: var(--yellow); font-size: .75rem; text-align: center; margin: 6px 0; }
+.status-box { margin-top: 10px; padding: 10px; background: #0f1115; border-radius: 8px; font-size: .9rem; min-height: 2.8em; white-space: pre-line; }
+
+.gallery { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
+.gallery.wrap { flex-wrap: wrap; overflow: visible; }
+.gallery-item { flex: 0 0 auto; width: 120px; background: var(--card); border: 2px solid #00c853; border-radius: 8px; padding: 4px; }
+.gallery-item img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; display: block; }
+.gallery-item .cap { font-size: .7rem; margin-top: 4px; white-space: pre-line; word-break: break-all; }
+
+.two-col { display: flex; gap: 10px; margin-top: 10px; }
+.two-col > div { flex: 1; min-width: 0; }
+.thumbs { display: flex; gap: 4px; flex-wrap: wrap; min-height: 52px; background: #0f1115; padding: 4px; border-radius: 6px; }
+.thumbs img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; }
+.small-title { font-size: .75rem; color: var(--dim); margin-bottom: 3px; }
+
+.reg-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #0f1115; border-radius: 8px; margin-top: 6px; }
+.reg-item .name { flex: 1; font-weight: bold; word-break: break-all; }
+
+.center { text-align: center; }
+.big-id { font-size: 2.6rem; font-weight: bold; letter-spacing: .08em; margin: 10px 0; font-family: ui-monospace, Consolas, monospace; }

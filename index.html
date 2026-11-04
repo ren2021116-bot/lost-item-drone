@@ -1,133 +1,113 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<link rel="manifest" href="manifest.json" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI探偵カメラ（独自物体カスタム学習）</title>
+  <meta name="theme-color" content="#1a3a6b">
+  <title>FINDRONE AI探偵カメラ</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
-
-  <!-- MediaPipe & PeerJS & TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.2"></script>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
+<div class="app-container">
+  <h1>🔍 AI探偵カメラ</h1>
 
-  <div class="app-container">
-    <h1>🔍 AI探偵カメラ (カスタム学習)</h1>
-
-    <!-- 🔗 モード切り替えタブ -->
-    <div class="tab-menu">
-      <button class="tab-btn active" onclick="switchTab('search')">🔍 探索モード</button>
-      <button class="tab-btn" onclick="switchTab('register')">📦 物体登録モード</button>
-    </div>
-
-    <!-- ================= 探索モード画面 ================= -->
-    <div id="searchTab" class="tab-content active">
-      <div class="control-group" style="border: 2px solid #007bff; background: #f0f7ff;">
-        <label for="pcIdInput" style="color: #007bff;">🔗 PC接続用ID:</label>
-        <div style="display: flex; gap: 5px;">
-          <input type="text" id="pcIdInput" placeholder="PC側のIDを入力" style="flex: 1;">
-          <button onclick="connectToPC()" style="padding: 0 15px; background: #007bff; color: #fff; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">接続</button>
-        </div>
-        <div id="connectionStatus" style="font-size: 12px; color: #666; margin-top: 5px;">ステータス: 未接続</div>
-      </div>
-
-      <div class="control-group">
-        <label for="targetObject">探すもの:</label>
-        <div style="display: flex; gap: 5px;">
-          <input type="text" id="targetObject" value="cup" placeholder="例: cup または カスタム名" style="flex: 1;">
-          <button onclick="updateTarget()" style="padding: 0 15px; background: #007bff; color: #fff; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">決定</button>
-        </div>
-        <!-- 登録済みカスタムアイテムのワンタップ選択肢 -->
-        <div id="quickSelectList" style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px;"></div>
-      </div>
-
-      <div class="control-group">
-        <label for="modelSelect">AIモデル切り替え:</label>
-        <select id="modelSelect" onchange="changeModel()">
-          <option value="lite0">EfficientDet-Lite0 (標準)</option>
-          <option value="lite2">EfficientDet-Lite2 (高精度)</option>
-        </select>
-      </div>
-
-      <div class="camera-container" style="position: relative; width: 100%; background: #000; border-radius: 8px; overflow: hidden;">
-        <video id="video" autoplay muted playsinline style="width: 100%; display: block;"></video>
-        <canvas id="outputCanvas" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;"></canvas>
-      </div>
-
-      <div class="button-group" style="margin-top: 10px;">
-        <button id="startButton" class="primary-btn" onclick="startCamera()" disabled>PCと接続してください</button>
-        <button id="stopButton" class="danger-btn" onclick="stopCamera()" style="display:none;">停止</button>
-      </div>
-
-      <div id="status" class="status-box">ステータス: AIモデルをロード中...</div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-        <h3 style="margin: 0;">📁 発見したアイテムの履歴</h3>
-        <button onclick="clearGallery()" style="padding: 5px 10px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">履歴クリア</button>
-      </div>
-      <div id="imageGallery" class="gallery" style="display: flex; gap: 10px; overflow-x: auto; padding: 10px 0;"></div>
-    </div>
-
-    <!-- ================= 物体登録モード画面（角度付きガイド ＆ AI学習） ================= -->
-    <div id="registerTab" class="tab-content">
-      <div class="control-group">
-        <label for="registerName">登録するカスタム物体名:</label>
-        <input type="text" id="registerName" placeholder="例: my_keys, special_card" style="width: 100%; padding: 10px; box-sizing: border-box;">
-      </div>
-
-      <!-- カメラ起動 ＆ 停止ボタン -->
-      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-        <button onclick="startRegCamera()" style="flex: 1; padding: 10px; background: #17a2b8; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">📱 登録カメラ起動</button>
-        <button onclick="stopRegCamera()" style="flex: 1; padding: 10px; background: #6c757d; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">⏹️ カメラ停止</button>
-      </div>
-
-      <div class="camera-container" style="position: relative; width: 100%; background: #000; border-radius: 8px; overflow: hidden;">
-        <video id="regVideo" autoplay muted playsinline style="width: 100%; display: block;"></video>
-        <!-- 角度・位置合わせ用の黄色いガイド枠 -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; border: 3px dashed #ffc107; pointer-events: none; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);"></div>
-      </div>
-      <p style="font-size: 11px; color: #ffc107; margin-top: 5px; text-align: center;">⚠️ ガイド枠内に収め、角度を変えて複数枚撮影してください</p>
-
-      <!-- 撮影アクションボタン -->
-      <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <button onclick="captureObject()" style="flex: 1; padding: 12px; background: #ffc107; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">📸 物体(クラス0)撮影 (<span id="objCount">0</span>)</button>
-        <button onclick="captureBackground()" style="flex: 1; padding: 12px; background: #6c757d; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">🖼️ 背景(クラス1)撮影 (<span id="bgCount">0</span>)</button>
-      </div>
-
-      <!-- サムネイル表示 -->
-      <div style="display: flex; gap: 15px; margin-top: 10px; justify-content: space-around;">
-        <div>
-          <div style="font-size: 11px; color: #ffc107; margin-bottom: 3px;">物体画像一覧</div>
-          <div id="objThumbnails" style="display: flex; gap: 4px; min-height: 45px; background: #222; padding: 4px; border-radius: 4px; overflow-x: auto; max-width: 160px;"></div>
-        </div>
-        <div>
-          <div style="font-size: 11px; color: #aaa; margin-bottom: 3px;">背景画像一覧</div>
-          <div id="bgThumbnails" style="display: flex; gap: 4px; min-height: 45px; background: #222; padding: 4px; border-radius: 4px; overflow-x: auto; max-width: 160px;"></div>
-        </div>
-      </div>
-
-      <div class="button-group" style="margin-top: 15px;">
-        <button onclick="trainAndRegister()" style="width: 100%; padding: 14px; background: #28a745; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer;">⚡ AIに学習させて登録完了</button>
-      </div>
-
-      <!-- 登録した物体を消去するボタン -->
-      <div style="margin-top: 8px;">
-        <button onclick="clearCustomModel()" style="width: 100%; padding: 10px; background: #dc3545; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">🗑️ 登録した物体・モデルを消去</button>
-      </div>
-
-      <div id="regStatus" class="status-box" style="margin-top: 10px;">ステータス: スマホカメラを起動し、物体と背景を複数角度から撮影してください</div>
-
-      <h3 style="margin: 20px 0 10px 0; font-size: 16px;">📦 登録済みカスタム物体</h3>
-      <div id="registeredList" style="display: flex; gap: 10px; overflow-x: auto; padding: 10px 0;"></div>
-    </div>
-
+  <div class="tab-menu">
+    <button class="tab-btn active" data-tab="search">🔍 探索モード</button>
+    <button class="tab-btn" data-tab="register">📦 物体登録モード</button>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <!-- ================= 探索モード ================= -->
+  <section id="searchTab" class="tab-content active">
+    <div class="card">
+      <label for="pcIdInput">🔗 PC接続用ID(任意)</label>
+      <div class="row">
+        <input id="pcIdInput" type="text" placeholder="PCの画面に出るID 例: FD-7K3M" autocomplete="off" autocapitalize="characters">
+        <button id="connectButton" class="btn blue">接続</button>
+      </div>
+      <div id="connectionStatus" class="note">未接続(つながなくても探索は使えます)</div>
+    </div>
+
+    <div class="card">
+      <label for="targetObject">探すもの</label>
+      <div class="row">
+        <input id="targetObject" type="text" value="cup" placeholder="例: cup / コップ / 登録した名前">
+        <button id="targetButton" class="btn blue">決定</button>
+      </div>
+      <div id="quickSelectList" class="chips"></div>
+      <label for="placeInput">場所名(任意)</label>
+      <input id="placeInput" type="text" placeholder="例: P1 / 1F廊下" autocomplete="off">
+    </div>
+
+    <div class="card">
+      <label for="modelSelect">AIモデル切り替え(標準の80種類用)</label>
+      <select id="modelSelect">
+        <option value="lite0">EfficientDet-Lite0 (標準)</option>
+        <option value="lite2">EfficientDet-Lite2 (高精度)</option>
+      </select>
+    </div>
+
+    <div class="camera-container">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="outputCanvas"></canvas>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="startButton" class="btn green wide" disabled>AI準備中...</button>
+      <button id="stopButton" class="btn red wide" hidden>停止</button>
+    </div>
+    <div id="status" class="status-box">ステータス: AIモデルをロード中...</div>
+
+    <div class="row between">
+      <h3>📁 発見したアイテムの履歴</h3>
+      <button id="clearGalleryButton" class="btn red small">履歴クリア</button>
+    </div>
+    <div id="imageGallery" class="gallery"></div>
+  </section>
+
+  <!-- ================= 物体登録モード ================= -->
+  <section id="registerTab" class="tab-content">
+    <div class="card">
+      <label for="registerName">登録するカスタム物体名</label>
+      <input id="registerName" type="text" placeholder="例: my_keys, 財布, special_card" autocomplete="off">
+    </div>
+
+    <div class="row">
+      <button id="startRegButton" class="btn teal wide">📷 登録カメラ起動</button>
+      <button id="stopRegButton" class="btn gray wide">⏹ カメラ停止</button>
+    </div>
+    <div class="camera-container">
+      <video id="regVideo" autoplay muted playsinline></video>
+      <div class="guide"></div>
+    </div>
+    <p class="hint">⚠ 物体を黄色い枠に収め、角度や距離を変えて何回も撮影してください</p>
+
+    <div class="row">
+      <button id="captureObjectButton" class="btn yellow wide">物体(クラス0)撮影 (<span id="objCount">0</span>)</button>
+      <button id="captureBgButton" class="btn gray wide">背景(クラス1)撮影 (<span id="bgCount">0</span>)</button>
+    </div>
+    <div class="note">背景は「物体を置いていない」場所を撮ります。探したい場所を色々な向きで撮るほど、まちがいが減ります。</div>
+
+    <div class="two-col">
+      <div><div class="small-title">物体画像一覧</div><div id="objThumbnails" class="thumbs"></div></div>
+      <div><div class="small-title">背景画像一覧</div><div id="bgThumbnails" class="thumbs"></div></div>
+    </div>
+
+    <div style="margin-top:14px">
+      <button id="trainButton" class="btn green full">⚡ AIに学習させて登録</button>
+    </div>
+    <div style="margin-top:8px">
+      <button id="clearCustomButton" class="btn red full">🗑 登録した物体・モデルを全て消去</button>
+    </div>
+    <div id="regStatus" class="status-box">ステータス: 「登録カメラ起動」を押してください</div>
+
+    <h3 style="margin-top:18px">📦 登録済みカスタム物体</h3>
+    <div id="registeredList"></div>
+  </section>
+</div>
+
+<script type="module" src="app.js"></script>
 </body>
 </html>
-
