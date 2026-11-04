@@ -705,6 +705,17 @@ renderRegisteredList();
 renderQuickSelect();
 try { const saved = localStorage.getItem(PC_ID_KEY); if (saved) $("pcIdInput").value = saved; } catch (e) {}
 
+// QRコード(または共有リンク)から開かれたとき: ?pc=ID の値で自動的につなぐ
+(function () {
+  const raw = new URLSearchParams(location.search).get("pc");
+  if (!raw) return;
+  const id = raw.trim().toUpperCase();
+  if (!/^[A-Z0-9-]{3,20}$/.test(id)) return;
+  $("pcIdInput").value = id;
+  history.replaceState(null, "", location.pathname);
+  connectToPC();
+})();
+
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 initializeAI();

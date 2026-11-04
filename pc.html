@@ -6,14 +6,18 @@
   <title>FINDRONE PC受信画面</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 </head>
 <body>
 <div class="app-container">
   <h1>🖥 PC受信画面</h1>
 
   <div class="card center">
-    <div>このIDを、スマホやカメラ側の「PC接続用ID」に入力してください</div>
+    <div>スマホのカメラでこのQRコードを読み取ると、自動でつながります</div>
+    <div class="note">(読み取れないときは、下のIDを「PC接続用ID」に入力してください)</div>
     <div id="pcId" class="big-id">作成中...</div>
+    <div id="qrBox" style="margin:12px 0"></div>
+    <div id="qrLink" class="qr-url"></div>
     <div id="pcStatus" class="note">サーバーに接続中...</div>
     <div style="margin-top:10px"><button id="newIdButton" class="btn blue small">IDを作り直す</button></div>
   </div>
@@ -39,6 +43,29 @@
     return s;
   }
   function setStatus(t) { $("pcStatus").textContent = t; }
+
+  function drawQr(id) {
+    var box = $("qrBox");
+    var url = new URL("./?pc=" + encodeURIComponent(id), location.href).href;
+    $("qrLink").textContent = url;
+    box.replaceChildren();
+    if (typeof qrcode === "undefined") {
+      box.textContent = "QRコードの部品を読み込めませんでした。下のURLをスマホで開いてください";
+      return;
+    }
+    try {
+      var qr = qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      var img = document.createElement("img");
+      img.src = qr.createDataURL(6, 4);
+      img.alt = "接続用QRコード";
+      img.className = "qr";
+      box.appendChild(img);
+    } catch (e) {
+      box.textContent = "QRコードを作れませんでした。下のURLをスマホで開いてください";
+    }
+  }
 
   function loadItems() {
     try { return JSON.parse(localStorage.getItem(LIST_KEY) || "[]"); } catch (e) { return []; }
@@ -93,6 +120,8 @@
     peer.on("open", function (openedId) {
       try { localStorage.setItem(ID_KEY, openedId); } catch (e) {}
       tries = 0;
+      $("pcId").textContent = openedId;
+      drawQr(openedId);
       setStatus("✅ 待機中です。スマホからの接続を待っています");
     });
     peer.on("connection", function (c) {

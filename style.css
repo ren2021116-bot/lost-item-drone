@@ -72,3 +72,6 @@ input[type=text], select {
 
 .center { text-align: center; }
 .big-id { font-size: 2.6rem; font-weight: bold; letter-spacing: .08em; margin: 10px 0; font-family: ui-monospace, Consolas, monospace; }
+
+.qr { width: 220px; height: 220px; image-rendering: pixelated; background: #fff; border-radius: 8px; }
+.qr-url { font-size: .75rem; color: var(--dim); word-break: break-all; margin-top: 6px; }
